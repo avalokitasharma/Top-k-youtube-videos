@@ -58,23 +58,23 @@ curl "http://localhost/v1/topk?k=10&window=24h"
 ```
 
 ### Scaling
-Stateless ingestion and query services scale via replication
-Kafka partitions enable parallel processing
-Processor instances scale with partitions
-Redis can be clustered for higher throughput
+- Stateless ingestion and query services scale via replication
+- Kafka partitions enable parallel processing
+- Processor instances scale with partitions
+- Redis can be clustered for higher throughput
 
 ### Tradeoffs
-Eventual consistency instead of strict guarantees
-No built-in exactly-once processing
-Redis memory usage grows with data
+- Eventual consistency instead of strict guarantees
+- No built-in exactly-once processing
+- Redis memory usage grows with data
 
 These are acceptable for ranking systems where slight delays are tolerable.
 
 ### Future Work
-Time-decay scoring
-Sliding window aggregation
-Per-region or per-category rankings
-Streaming updates (WebSockets/SSE)
+- Time-decay scoring
+- Sliding window aggregation
+- Per-region or per-category rankings
+- Streaming updates (WebSockets/SSE)
 
 #### Notes
 
