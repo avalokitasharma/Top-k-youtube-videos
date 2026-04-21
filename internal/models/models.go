@@ -8,6 +8,15 @@ type Event struct {
 	Category  string `json:"category"`
 }
 
+type Video struct {
+	VideoID    string `json:"video_id"`
+	Title      string `json:"title"`
+	UploaderID string `json:"uploader_id"`
+	Category   string `json:"category"`
+	Region     string `json:"region"`
+	Thumbnail  string `json:"thumbnail_url"`
+}
+
 type TopKItem struct {
 	Rank     int     `json:"rank"`
 	VideoId  string  `json:"video_id"`
