@@ -14,7 +14,76 @@ The system consists of three services: ingestion, processor, and query.
 - Processor consumes events, updates counters, and maintains rankings in Redis  
 - Query service reads Top-K results from Redis and enriches them with metadata from Postgres  
 
-Kafka acts as the event backbone, Redis handles real-time computation, and Postgres stores durable metadata.
+### Key Design Decisions
+1. Why Not Flink / Spark?
+JVM overhead + operational complexity
+Overkill for many real-time ranking systems
+Instead:
+Custom Go stream processor
+Built on Kafka + Redis
+Easier to deploy, debug, and scale
+
+2. Kafka as the Backbone
+Topic: video-events
+Partitioning: video_id (ensures ordering per video)
+Enables:
+Horizontal scaling of processors
+Backpressure handling
+Replay capability
+
+3. Redis for Real-Time Top-K
+
+We use Redis:
+
+HASH → per-video counters
+ZSET → ranking (Top-K)
+
+Example:
+
+ZADD topk:global:24h <score> <video_id>
+
+Why Redis?
+
+O(log N) ranking updates
+Sub-millisecond reads
+Perfect for hot data
+
+4. Postgres for Metadata
+
+Stores:
+
+Video metadata (title, category, thumbnail, etc.)
+
+Why separate?
+
+Redis = fast but ephemeral
+Postgres = durable + queryable
+
+5. Scoring Function (Extensible)
+score = 0.6*views + 0.2*likes + 0.1*shares + 0.1*watch_time
+
+
+## Project Structure
+```bash
+topk-youtube-system/
+├── cmd/                # Service entrypoints
+│   ├── ingestion/
+│   ├── processor/
+│   ├── query/
+│
+├── internal/
+│   ├── kafka/          # Kafka producer/consumer
+│   ├── redis/          # Redis client
+│   ├── postgres/       # DB client
+│   ├── handlers/       # API handlers
+│   ├── models/         # Domain models
+│   ├── score/          # Ranking logic
+│   ├── config/         # Config loader
+│
+├── docker-compose.yml
+├── Dockerfiles
+├── init.sql
+```
 
 ---
 
@@ -28,16 +97,6 @@ Kafka acts as the event backbone, Redis handles real-time computation, and Postg
 
 ---
 
-## Storage
-
-Redis is used for fast updates and reads:
-
-- `counters:<video_id>` → engagement counts  
-- `topk:global:<window>` → rankings  
-
-Postgres stores video metadata such as title and category.
-
----
 
 ### Running Locally
 
