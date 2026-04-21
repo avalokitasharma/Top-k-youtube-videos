@@ -15,49 +15,32 @@ The system consists of three services: ingestion, processor, and query.
 - Query service reads Top-K results from Redis and enriches them with metadata from Postgres  
 
 ### Key Design Decisions
-1. Why Not Flink / Spark?
-JVM overhead + operational complexity
-Overkill for many real-time ranking systems
-Instead:
-Custom Go stream processor
-Built on Kafka + Redis
-Easier to deploy, debug, and scale
+
+1. Custom Go stream processor
+- Built on Kafka + Redis
+- Easier to deploy, debug, and scale
 
 2. Kafka as the Backbone
+- Horizontal scaling of processors
+- Backpressure handling
+- Replay capability
+
+```bash
 Topic: video-events
 Partitioning: video_id (ensures ordering per video)
-Enables:
-Horizontal scaling of processors
-Backpressure handling
-Replay capability
-
+```
 3. Redis for Real-Time Top-K
+- O(log N) ranking updates
+- Sub-millisecond reads
+- Perfect for hot data
 
-We use Redis:
-
+```bash
 HASH → per-video counters
 ZSET → ranking (Top-K)
+```
 
-Example:
 
-ZADD topk:global:24h <score> <video_id>
-
-Why Redis?
-
-O(log N) ranking updates
-Sub-millisecond reads
-Perfect for hot data
-
-4. Postgres for Metadata
-
-Stores:
-
-Video metadata (title, category, thumbnail, etc.)
-
-Why separate?
-
-Redis = fast but ephemeral
-Postgres = durable + queryable
+4. Postgres for durable and queryable Metadata
 
 5. Scoring Function (Extensible)
 score = 0.6*views + 0.2*likes + 0.1*shares + 0.1*watch_time
