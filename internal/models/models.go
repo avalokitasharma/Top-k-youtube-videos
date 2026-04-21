@@ -9,7 +9,7 @@ type Event struct {
 }
 
 type Video struct {
-	VideoID    string `json:"video_id"`
+	VideoId    string `json:"video_id"`
 	Title      string `json:"title"`
 	UploaderID string `json:"uploader_id"`
 	Category   string `json:"category"`
